@@ -1,0 +1,11 @@
+*.zip
+
+build/
+build_*/
+build-desktop/
+build_desktop/
+build_ci/
+web/
+
+**/.gradle/
+**/local.properties

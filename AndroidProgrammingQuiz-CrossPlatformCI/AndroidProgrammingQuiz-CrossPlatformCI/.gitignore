@@ -1,0 +1,15 @@
+# Generated build output
+build_desktop/
+web/
+build_android_native_check/
+
+# Android/Gradle generated files
+android/.gradle/
+android/build/
+android/app/build/
+android/app/.cxx/
+android/local.properties
+
+# IDE/project-local metadata
+.idea/
+*.iml
