@@ -8,4 +8,4 @@ jobs:
         steps:
             - uses: actions/checkout@v4
             - name: Print a greeting
-                run: echo "Hello, GitHub Actions! This ran automatically on push."
+              run: echo "Hello, GitHub Actions! This ran automatically on push."
