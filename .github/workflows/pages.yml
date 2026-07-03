@@ -32,16 +32,14 @@ jobs:
       - name: Build Chapter2/2-OpenGLES3_Primitives-Modern
         working-directory: Chapter2/2-OpenGLES3_Primitives-Modern
         run: |
-          # Inject MIN_WEBGL_VERSION=2 so Emscripten accepts GLSL ES 3.00 shaders.
-          sed 's/-s USE_WEBGL2=1 \\/-s USE_WEBGL2=1 \\\n    -s MIN_WEBGL_VERSION=2 \\/' build_web.sh | bash
+          bash build_web.sh
           mkdir -p ../../site/Chapter2/2-OpenGLES3_Primitives-Modern
           cp -r web/. ../../site/Chapter2/2-OpenGLES3_Primitives-Modern/
 
       - name: Build AndroidProgrammingQuiz-CrossPlatformCI
         working-directory: AndroidProgrammingQuiz-CrossPlatformCI/AndroidProgrammingQuiz-CrossPlatformCI
         run: |
-          # Inject MIN_WEBGL_VERSION=2 so Emscripten accepts GLSL ES 3.00 shaders.
-          sed 's/-s USE_WEBGL2=1 \\/-s USE_WEBGL2=1 \\\n    -s MIN_WEBGL_VERSION=2 \\/' build_web.sh | bash
+          bash build_web.sh
           mkdir -p ../../site/AndroidProgrammingQuiz-CrossPlatformCI
           cp -r web/. ../../site/AndroidProgrammingQuiz-CrossPlatformCI/
 

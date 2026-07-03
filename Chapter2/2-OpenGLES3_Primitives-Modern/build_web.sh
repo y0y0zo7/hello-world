@@ -28,6 +28,7 @@ emcc -std=c++17 \
     -DUSE_GLFW \
     -s USE_GLFW=3 \
     -s USE_WEBGL2=1 \
+    -s MIN_WEBGL_VERSION=2 \
     -s FULL_ES3=1 \
     -s WASM=1 \
     -s ALLOW_MEMORY_GROWTH=1 \
