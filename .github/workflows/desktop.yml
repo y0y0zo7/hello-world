@@ -5,6 +5,10 @@ on:
     branches: [main]
   pull_request:
     branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
 
 jobs:
   build:
@@ -14,16 +18,39 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - { project: Chapter2/2-OpenGLES3_Primitives-Modern, name: 2-OpenGLES3_Primitives-Modern, os: ubuntu-latest  }
-          - { project: Chapter2/2-OpenGLES3_Primitives-Modern, name: 2-OpenGLES3_Primitives-Modern, os: windows-latest }
-          - { project: AndroidProgrammingQuiz-CrossPlatformCI/AndroidProgrammingQuiz-CrossPlatformCI, name: AndroidProgrammingQuiz-CrossPlatformCI, os: ubuntu-latest  }
-          - { project: AndroidProgrammingQuiz-CrossPlatformCI/AndroidProgrammingQuiz-CrossPlatformCI, name: AndroidProgrammingQuiz-CrossPlatformCI, os: windows-latest }
+          - project: Chapter2/2-OpenGLES3_Primitives-Modern
+            name: 2-OpenGLES3-Primitives
+            os: ubuntu-latest
+            run_tests: false
+          - project: Chapter2/2-OpenGLES3_Primitives-Modern
+            name: 2-OpenGLES3-Primitives
+            os: windows-latest
+            run_tests: false
+          - project: AndroidProgrammingQuiz-CrossPlatformCI/AndroidProgrammingQuiz-CrossPlatformCI
+            name: Assignment-1
+            os: ubuntu-latest
+            run_tests: false
+          - project: AndroidProgrammingQuiz-CrossPlatformCI/AndroidProgrammingQuiz-CrossPlatformCI
+            name: Assignment-1
+            os: windows-latest
+            run_tests: false
+          - project: android-programming-2
+            name: Assignment-2-3D-Fan
+            os: ubuntu-latest
+            run_tests: true
+          - project: android-programming-2
+            name: Assignment-2-3D-Fan
+            os: windows-latest
+            run_tests: true
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
-      # ── Linux only ──────────────────────────────────────────────────────────
-      - name: Install OpenGL, X11 and Wayland headers (Linux)
+      - name: Verify Assignment 2 source and rubric invariants
+        if: matrix.name == 'Assignment-2-3D-Fan' && runner.os == 'Linux'
+        run: python android-programming-2/scripts/verify_submission.py
+
+      - name: Install OpenGL and window-system headers
         if: runner.os == 'Linux'
         run: |
           sudo apt-get update -qq
@@ -32,41 +59,36 @@ jobs:
             libxcursor-dev libxi-dev libgl1-mesa-dev \
             libwayland-dev wayland-protocols libxkbcommon-dev
 
-      - name: Cache FetchContent deps
-        uses: actions/cache@v4
+      - name: Cache pinned CMake dependencies
+        uses: actions/cache@v5
         with:
           path: ${{ matrix.project }}/build_ci/_deps
           key: cmake-deps-${{ runner.os }}-${{ matrix.name }}-${{ hashFiles(format('{0}/cmake/ImportDependencies.cmake', matrix.project)) }}
           restore-keys: cmake-deps-${{ runner.os }}-${{ matrix.name }}-
 
-      # ── Windows only ────────────────────────────────────────────────────────
-      # Load the MSVC environment (cl.exe, link.exe, etc.) directly and build
-      # with Ninja instead of asking CMake to generate a Visual Studio solution.
-      # The "Visual Studio 17 2022" generator depends on CMake locating an
-      # installed VS instance via vswhere, which has been flaky/missing on
-      # some windows-latest runner images ("could not find any instance of
-      # Visual Studio") even though the MSVC toolchain itself is present.
-      # Ninja + msvc-dev-cmd sidesteps that VS-instance discovery entirely.
-      - name: Setup MSVC environment (Windows)
+      - name: Set up MSVC environment
         if: runner.os == 'Windows'
         uses: ilammy/msvc-dev-cmd@v1
 
-      - name: Install Ninja (Windows)
+      - name: Install Ninja
         if: runner.os == 'Windows'
         uses: seanmiddleditch/gha-setup-ninja@v4
 
-      # ── CMake configure ─────────────────────────────────────────────────────
-      - name: CMake configure (Linux)
+      - name: Configure with CMake (Linux)
         if: runner.os == 'Linux'
         working-directory: ${{ matrix.project }}
         run: cmake -S . -B build_ci -DCMAKE_BUILD_TYPE=Release
 
-      - name: CMake configure (Windows)
+      - name: Configure with CMake and Ninja (Windows)
         if: runner.os == 'Windows'
         working-directory: ${{ matrix.project }}
-        run: cmake -S . -B build_ci -G "Ninja" -DCMAKE_BUILD_TYPE=Release
+        run: cmake -S . -B build_ci -G Ninja -DCMAKE_BUILD_TYPE=Release
 
-      # ── CMake build ─────────────────────────────────────────────────────────
-      - name: CMake build
+      - name: Build
         working-directory: ${{ matrix.project }}
         run: cmake --build build_ci --config Release --parallel
+
+      - name: Run Assignment 2 interaction tests
+        if: matrix.run_tests
+        working-directory: ${{ matrix.project }}
+        run: ctest --test-dir build_ci -C Release --output-on-failure

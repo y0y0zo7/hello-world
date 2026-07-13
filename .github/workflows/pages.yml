@@ -3,22 +3,26 @@ name: GitHub Pages
 on:
   push:
     branches: [main]
+  workflow_dispatch:
 
 permissions:
+  contents: read
   pages: write
   id-token: write
-  contents: read
 
 concurrency:
-  group: pages
+  group: pages-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
   build-web:
-    name: Build WebGL demos
+    name: Build WebGL site
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
+
+      - name: Verify Assignment 2 source and rubric invariants
+        run: python android-programming-2/scripts/verify_submission.py
 
       - name: Set up Emscripten 3.1.64
         uses: mymindstorm/setup-emsdk@v14
@@ -26,62 +30,57 @@ jobs:
           version: "3.1.64"
           actions-cache-folder: .emsdk-cache
 
-      - name: Create site directory
-        run: mkdir -p site
+      - name: Prepare site root
+        run: |
+          mkdir -p site
+          cp index.html site/index.html
+          touch site/.nojekyll
 
-      - name: Build Chapter2/2-OpenGLES3_Primitives-Modern
+      - name: Build Chapter 2 primitives
         working-directory: Chapter2/2-OpenGLES3_Primitives-Modern
         run: |
           bash build_web.sh
           mkdir -p ../../site/Chapter2/2-OpenGLES3_Primitives-Modern
           cp -r web/. ../../site/Chapter2/2-OpenGLES3_Primitives-Modern/
 
-      - name: Build AndroidProgrammingQuiz-CrossPlatformCI
+      - name: Build Assignment 1
         working-directory: AndroidProgrammingQuiz-CrossPlatformCI/AndroidProgrammingQuiz-CrossPlatformCI
         run: |
           bash build_web.sh
           mkdir -p ../../site/AndroidProgrammingQuiz-CrossPlatformCI
           cp -r web/. ../../site/AndroidProgrammingQuiz-CrossPlatformCI/
 
-      - name: Generate index.html
+      - name: Build Assignment 2 - 3D Fan
+        working-directory: android-programming-2
         run: |
-          cat > site/index.html << 'HTML'
-          <!DOCTYPE html>
-          <html lang="en">
-          <head>
-            <meta charset="UTF-8">
-            <title>OpenGL ES 3.0 Modern - WebGL Demo</title>
-          </head>
-          <body>
-            <h1>OpenGL ES 3.0 Modern</h1>
-            <p>An interactive WebGL demo that runs directly in your browser. No installation needed.</p>
+          bash build_web.sh
+          mkdir -p ../site/android-programming-2
+          cp -r web/. ../site/android-programming-2/
 
-            <h2>Chapter 2 - Primitives</h2>
-            <p>OpenGL primitives: point, line, and triangle with their variations.</p>
-            <p><a href="Chapter2/2-OpenGLES3_Primitives-Modern/">Launch the demo</a></p>
-
-            <h2>Assignment 1 - Android Programming Quiz</h2>
-            <p><a href="AndroidProgrammingQuiz-CrossPlatformCI/">Launch Assignment 1</a></p>
-          </body>
-          </html>
-          HTML
+      - name: Verify deployable site
+        run: |
+          test -s site/index.html
+          test -s site/android-programming-2/index.html
+          test -s site/android-programming-2/index.js
+          test -s site/android-programming-2/index.wasm
+          test -s site/android-programming-2/index.data
 
       - name: Configure GitHub Pages
-        uses: actions/configure-pages@v4
+        uses: actions/configure-pages@v5
 
       - name: Upload Pages artifact
-        uses: actions/upload-pages-artifact@v3
+        uses: actions/upload-pages-artifact@v4
         with:
           path: site/
 
   deploy:
-    name: Deploy to GitHub Pages
+    name: Deploy GitHub Pages
     needs: build-web
     runs-on: ubuntu-latest
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
-      - name: Deploy to GitHub Pages
+      - name: Deploy GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v5
+        uses: actions/deploy-pages@v4

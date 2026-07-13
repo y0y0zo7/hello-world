@@ -6,6 +6,12 @@ build-desktop/
 build_desktop/
 build_ci/
 web/
+site/
+.emsdk-cache/
 
 **/.gradle/
 **/local.properties
+
+# Local course material and verification output are not website source.
+reference/
+tmp/
