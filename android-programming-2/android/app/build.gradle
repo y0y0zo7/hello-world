@@ -36,6 +36,9 @@ android {
 
     lint {
         warningsAsErrors true
-        disable 'AndroidGradlePluginVersion'
+        // AGP 8.12 supports API 36 at most. GitHub runners may also contain
+        // the API 37 preview, which makes OldTargetApi fail based on runner
+        // contents even though this project uses AGP's highest supported API.
+        disable 'AndroidGradlePluginVersion', 'OldTargetApi'
     }
 }
