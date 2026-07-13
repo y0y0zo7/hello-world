@@ -9,6 +9,8 @@
 namespace {
 GLFWwindow* window = nullptr;
 bool pointerDown = false;
+int framebufferWidth = 0;
+int framebufferHeight = 0;
 
 void mouseButtonCallback(GLFWwindow* currentWindow, int button, int action, int)
 {
@@ -35,6 +37,8 @@ void cursorPositionCallback(GLFWwindow*, double x, double y)
 
 void framebufferSizeCallback(GLFWwindow*, int width, int height)
 {
+    framebufferWidth = width;
+    framebufferHeight = height;
     Renderer::Instance().resize(width, height);
 }
 
@@ -84,12 +88,21 @@ bool initializeScene()
     int width = 0;
     int height = 0;
     glfwGetFramebufferSize(window, &width, &height);
-    Renderer::Instance().resize(width, height);
+    framebufferSizeCallback(window, width, height);
     return true;
 }
 
 void renderFrame()
 {
+    // Web fullscreen can change the canvas drawing-buffer size without a GLFW
+    // callback. Polling also makes resize handling reliable across browsers.
+    int currentWidth = 0;
+    int currentHeight = 0;
+    glfwGetFramebufferSize(window, &currentWidth, &currentHeight);
+    if (currentWidth != framebufferWidth || currentHeight != framebufferHeight) {
+        framebufferSizeCallback(window, currentWidth, currentHeight);
+    }
+
     Renderer::Instance().render();
     glfwSwapBuffers(window);
     glfwPollEvents();
