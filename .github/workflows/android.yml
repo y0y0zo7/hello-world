@@ -45,7 +45,38 @@ jobs:
         uses: android-actions/setup-android@v3
 
       - name: Install pinned NDK and CMake
-        run: sdkmanager --sdk_root="${ANDROID_HOME}" "ndk;27.0.12077973" "cmake;3.22.1"
+        shell: bash
+        timeout-minutes: 20
+        run: |
+          set -euo pipefail
+
+          install_sdk_package() {
+            local package="$1"
+            local destination="$2"
+
+            for attempt in 1 2 3; do
+              echo "Installing ${package} (attempt ${attempt}/3)"
+              if sdkmanager --sdk_root="${ANDROID_HOME}" "${package}" \
+                  && test -f "${destination}/source.properties"; then
+                echo "Installed and verified ${package}"
+                return 0
+              fi
+
+              echo "::warning::${package} download was incomplete; clearing its temporary files before retry"
+              rm -rf "${ANDROID_HOME}/.temp" "${destination}"
+              if [ "${attempt}" -lt 3 ]; then
+                sleep $((attempt * 10))
+              fi
+            done
+
+            echo "::error::Unable to install ${package} after three verified attempts"
+            return 1
+          }
+
+          # Install separately so a transient NDK failure does not invalidate
+          # the already completed CMake download.
+          install_sdk_package "cmake;3.22.1" "${ANDROID_HOME}/cmake/3.22.1"
+          install_sdk_package "ndk;27.0.12077973" "${ANDROID_HOME}/ndk/27.0.12077973"
 
       # The repositories intentionally do not commit generated wrapper binaries.
       # Read each project's pinned Gradle version and install exactly that release.
