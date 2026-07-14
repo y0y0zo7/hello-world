@@ -85,12 +85,14 @@ hierarchy = [
     "transform.TransformTranslate(0.0f, -1.21f, 0.0f)",
     "transform.TransformScale(0.15f, 2.53f, 0.15f)",
     "transform.TransformTranslate(0.0f, 0.2f, 0.0f)",
-    "for (int blade = 0; blade < 4; ++blade)",
-    "spinAngle + blade * 90.0f",
+    "const float bladeSpacing = 360.0f / static_cast<float>(bladeCount)",
+    "for (int blade = 0; blade < bladeCount; ++blade)",
+    "spinAngle + blade * bladeSpacing",
 ]
 check(
     "Core 3 - hierarchical scene",
     all(token in FAN_CPP for token in world_transform + hierarchy)
+    and "bladeCount = 4" in FAN_H
     and FAN_CPP.count("TransformPushMatrix()") == FAN_CPP.count("TransformPopMatrix()"),
     "the exact world transform and balanced base/pole/hub/blade branches are present",
 )
@@ -141,6 +143,21 @@ check(
         )
     ),
     "tap toggling, velocity scaling, clamping, logging, and release reset are present",
+)
+
+check(
+    "Stretch goal - runtime blade count",
+    all(
+        token in FAN_H + FAN_CPP
+        for token in (
+            "kLongPressMs = 600.0f",
+            "void CycleBladeCount()",
+            "bladeCount = bladeCount >= 5 ? 3 : bladeCount + 1",
+            "360.0f / static_cast<float>(bladeCount)",
+            'LOGI("Blade count %d"',
+        )
+    ),
+    "a long press cycles 3/4/5 blades and spaces them by 360 degrees / count",
 )
 
 check(

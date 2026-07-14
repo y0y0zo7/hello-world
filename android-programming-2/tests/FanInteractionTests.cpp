@@ -22,6 +22,23 @@ int main()
     Fan fan;
 
     expect(fan.IsFanOn(), "fan starts on");
+    expect(fan.GetBladeCount() == 4, "fan starts with the core four-blade layout");
+    fan.CycleBladeCount();
+    expect(fan.GetBladeCount() == 5, "blade count cycles from four to five");
+    fan.CycleBladeCount();
+    expect(fan.GetBladeCount() == 3, "blade count wraps from five to three");
+    fan.CycleBladeCount();
+    expect(fan.GetBladeCount() == 4, "blade count cycles back to four");
+
+    fan.TouchEventDown(200.0f, 200.0f);
+    std::this_thread::sleep_for(std::chrono::milliseconds(620));
+    fan.TouchEventRelease(200.0f, 200.0f);
+    expect(fan.GetBladeCount() == 5, "a long press cycles the runtime blade count");
+    expect(fan.IsFanOn(), "a long press does not toggle the fan");
+    fan.CycleBladeCount();
+    fan.CycleBladeCount();
+    expect(fan.GetBladeCount() == 4, "test restores the default four-blade layout");
+
     fan.TouchEventDown(100.0f, 100.0f);
     fan.TouchEventRelease(103.0f, 104.0f);
     expect(!fan.IsFanOn(), "a small movement is classified as a tap");

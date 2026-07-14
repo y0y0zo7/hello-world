@@ -16,6 +16,7 @@ A cross-platform OpenGL ES 3.0 fan built from one indexed cube and one shared hi
 - Hold and drag to calculate pointer velocity with `std::chrono::steady_clock`.
 - Drag velocity is multiplied by `8` and clamped to a maximum boost of `20` degrees per frame.
 - Releasing the pointer resets the boost to zero; the fan returns to its base `1.5` degrees per frame.
+- Long-press for at least 600 ms to cycle through 3, 4, and 5 blades at runtime.
 - Press `Esc` to exit the Desktop build.
 
 ## Rubric implementation
@@ -27,6 +28,7 @@ A cross-platform OpenGL ES 3.0 fan built from one indexed cube and one shared hi
 - `PARTCOLOR` is uploaded with `glUniform3fv` for the brown base, light-gray pole, dark-gray hub, and red/blue/orange/green blades.
 - Depth testing and front/back corner shades make the shared cube visibly three-dimensional.
 - Android touch and Desktop/Web mouse input call the same model callbacks.
+- Optional stretch goal: the runtime blade count cycles through 3/4/5, with blades spaced by `360° / count`; the default remains the core four-blade scene.
 
 Run the static rubric guard locally from this directory:
 

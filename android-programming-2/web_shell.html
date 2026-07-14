@@ -29,7 +29,7 @@
 <body>
   <main>
     <h1>3D Fan</h1>
-    <p>Click to toggle the fan. Hold and drag faster to increase blade speed.</p>
+    <p>Click to toggle, drag to boost speed, or long-press to cycle 3/4/5 blades.</p>
     <section class="stage" aria-label="Interactive WebGL fan">
       <canvas id="canvas" width="800" height="700" tabindex="0" oncontextmenu="event.preventDefault()"></canvas>
       <div class="bar">
@@ -81,7 +81,7 @@
 
     var Module = {
       canvas: document.getElementById('canvas'),
-      setStatus(message) { statusElement.textContent = message || 'Ready - click or drag the fan'; },
+      setStatus(message) { statusElement.textContent = message || 'Ready - click, drag, or long-press'; },
       monitorRunDependencies(left) { this.setStatus(left ? `Loading (${left})...` : 'Starting...'); },
       printErr(text) { console.error(text); },
       onRuntimeInitialized() { syncCanvasSize(); }

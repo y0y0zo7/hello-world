@@ -48,6 +48,7 @@ constexpr GLfloat kBladeColors[][3] = {
     {0.12f, 0.38f, 0.95f},
     {1.00f, 0.48f, 0.08f},
     {0.08f, 0.78f, 0.28f},
+    {0.62f, 0.22f, 0.90f},
 };
 } // namespace
 
@@ -167,10 +168,11 @@ void Fan::Render()
     drawPart(kHubColor);
     transform.TransformPopMatrix();
 
-    for (int blade = 0; blade < 4; ++blade) {
+    const float bladeSpacing = 360.0f / static_cast<float>(bladeCount);
+    for (int blade = 0; blade < bladeCount; ++blade) {
         transform.TransformPushMatrix();
         transform.TransformTranslate(0.0f, 0.2f, 0.15f);
-        transform.TransformRotate(glm::radians(spinAngle + blade * 90.0f), 0.0f, 0.0f, 1.0f);
+        transform.TransformRotate(glm::radians(spinAngle + blade * bladeSpacing), 0.0f, 0.0f, 1.0f);
         transform.TransformTranslate(0.0f, 0.55f, 0.0f);
         transform.TransformScale(0.22f, 0.8f, 0.05f);
         drawPart(kBladeColors[blade]);
@@ -196,7 +198,8 @@ void Fan::TouchEventDown(float x, float y)
     lastY = y;
     movedDistance = 0.0f;
     dragBoost = 0.0f;
-    lastMoveTime = std::chrono::steady_clock::now();
+    pressStartTime = std::chrono::steady_clock::now();
+    lastMoveTime = pressStartTime;
 }
 
 void Fan::TouchEventMove(float x, float y)
@@ -228,10 +231,23 @@ void Fan::TouchEventRelease(float x, float y)
     const float dy = y - lastY;
     movedDistance += std::sqrt(dx * dx + dy * dy);
 
+    const float pressDurationMs = std::chrono::duration<float, std::milli>(
+        std::chrono::steady_clock::now() - pressStartTime).count();
+
     pointerDown = false;
     dragBoost = 0.0f;
     if (movedDistance < kTapThreshold) {
-        fanOn = !fanOn;
-        LOGI("Fan %s", fanOn ? "ON" : "OFF");
+        if (pressDurationMs >= kLongPressMs) {
+            CycleBladeCount();
+        } else {
+            fanOn = !fanOn;
+            LOGI("Fan %s", fanOn ? "ON" : "OFF");
+        }
     }
+}
+
+void Fan::CycleBladeCount()
+{
+    bladeCount = bladeCount >= 5 ? 3 : bladeCount + 1;
+    LOGI("Blade count %d", bladeCount);
 }
