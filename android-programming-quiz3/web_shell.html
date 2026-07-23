@@ -1,0 +1,126 @@
+<!--
+  @file web_shell.html
+  @brief Hosts the Programming Quiz 3 WebAssembly canvas and loading status.
+  @author Zoey <t.zoey@digipen.edu>
+-->
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Programming Quiz 3 - Fan Dashboard HUD</title>
+  <style>
+    :root { color-scheme: dark; font-family: Inter, system-ui, sans-serif; }
+    * { box-sizing: border-box; }
+    body { margin: 0; min-height: 100vh; display: grid; place-items: center; background: #07101f; color: #e5edf9; }
+    main { width: min(94vw, 860px); padding: 1.5rem 0 2rem; text-align: center; }
+    h1 { margin: 0 0 .35rem; font-size: clamp(1.5rem, 4vw, 2.4rem); }
+    p { color: #aebed4; margin: .35rem 0 1rem; }
+    .stage { overflow: hidden; border: 1px solid #263a58; border-radius: 18px; background: #06101d; box-shadow: 0 24px 80px #0009; }
+    canvas { width: 100%; height: auto; aspect-ratio: 8 / 7; display: block; background: #06101d; cursor: pointer; touch-action: none; }
+    .stage:fullscreen,
+    .stage.fullscreen-fallback { inset: 0; display: grid; grid-template-rows: minmax(0, 1fr) auto; width: 100vw; height: 100vh; border: 0; border-radius: 0; }
+    .stage.fullscreen-fallback { position: fixed; z-index: 1000; }
+    .stage:fullscreen canvas,
+    .stage.fullscreen-fallback canvas { width: 100%; height: 100%; aspect-ratio: auto; }
+    .stage::backdrop { background: #06101d; }
+    .bar { display: flex; gap: .75rem; align-items: center; justify-content: space-between; padding: .75rem 1rem; background: #0c192b; }
+    #status { margin: 0; font-size: .9rem; text-align: left; }
+    button { border: 1px solid #42658f; border-radius: 999px; padding: .55rem .9rem; color: #f5f8ff; background: #183251; cursor: pointer; }
+    button:hover { background: #22456e; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Fan Dashboard HUD</h1>
+    <p>Use the HUD buttons to adjust speed and zoom. Click the fan to pick a part.</p>
+    <section class="stage" aria-label="Interactive Programming Quiz 3 fan dashboard">
+      <canvas id="canvas" width="800" height="700" tabindex="0" oncontextmenu="event.preventDefault()"></canvas>
+      <div class="bar">
+        <p id="status">Loading WebGL...</p>
+        <button id="fullscreen" type="button">Fullscreen</button>
+      </div>
+    </section>
+  </main>
+  <script>
+    const statusElement = document.getElementById('status');
+    const fullscreenButton = document.getElementById('fullscreen');
+    const stage = document.querySelector('.stage');
+
+    function isStageFullscreen() {
+      return (document.fullscreenElement || document.webkitFullscreenElement) === stage
+        || stage.classList.contains('fullscreen-fallback');
+    }
+
+    function exitFallbackFullscreen() {
+      stage.classList.remove('fullscreen-fallback');
+      document.body.style.overflow = '';
+      requestAnimationFrame(syncCanvasSize);
+    }
+
+    function enterFallbackFullscreen() {
+      stage.classList.add('fullscreen-fallback');
+      document.body.style.overflow = 'hidden';
+      Module.setStatus('Fullscreen mode - press Esc or use Exit fullscreen');
+      requestAnimationFrame(syncCanvasSize);
+    }
+
+    function syncCanvasSize() {
+      const canvas = Module.canvas;
+      const pixelRatio = Math.min(window.devicePixelRatio || 1, 2);
+      const cssWidth = canvas.clientWidth;
+      const cssHeight = canvas.clientHeight;
+      const width = Math.max(1, Math.round(cssWidth * pixelRatio));
+      const height = Math.max(1, Math.round(cssHeight * pixelRatio));
+
+      if (canvas.width !== width || canvas.height !== height) {
+        if (typeof Module.setCanvasSize === 'function') Module.setCanvasSize(width, height);
+        else {
+          canvas.width = width;
+          canvas.height = height;
+        }
+      }
+      fullscreenButton.textContent = isStageFullscreen() ? 'Exit fullscreen' : 'Fullscreen';
+    }
+
+    var Module = {
+      canvas: document.getElementById('canvas'),
+      setStatus(message) { statusElement.textContent = message || 'Ready - use the HUD controls or click the fan to pick'; },
+      monitorRunDependencies(left) { this.setStatus(left ? `Loading (${left})...` : 'Starting...'); },
+      printErr(text) { console.error(text); },
+      onRuntimeInitialized() { syncCanvasSize(); }
+    };
+
+    fullscreenButton.addEventListener('click', async () => {
+      try {
+        if (stage.classList.contains('fullscreen-fallback')) {
+          exitFallbackFullscreen();
+        } else if (isStageFullscreen()) {
+          if (document.exitFullscreen) await document.exitFullscreen();
+          else await document.webkitExitFullscreen?.();
+        } else if (stage.requestFullscreen) {
+          await stage.requestFullscreen();
+        } else if (stage.webkitRequestFullscreen) {
+          await stage.webkitRequestFullscreen();
+        } else {
+          enterFallbackFullscreen();
+        }
+      } catch (error) {
+        console.warn(`Native fullscreen unavailable: ${error.message}`);
+        enterFallbackFullscreen();
+      }
+    });
+
+    document.addEventListener('fullscreenchange', () => requestAnimationFrame(syncCanvasSize));
+    document.addEventListener('webkitfullscreenchange', () => requestAnimationFrame(syncCanvasSize));
+    document.addEventListener('keydown', event => {
+      if (event.key === 'Escape' && stage.classList.contains('fullscreen-fallback')) exitFallbackFullscreen();
+    });
+    window.addEventListener('resize', () => requestAnimationFrame(syncCanvasSize));
+    new ResizeObserver(() => requestAnimationFrame(syncCanvasSize)).observe(document.querySelector('.stage'));
+    requestAnimationFrame(syncCanvasSize);
+    window.addEventListener('error', event => Module.setStatus(`Error: ${event.message}`));
+  </script>
+  {{{ SCRIPT }}}
+</body>
+</html>

@@ -28,6 +28,9 @@ def sha256(relative_path: str) -> str:
 
 
 required_files = [
+    ".github/workflows/android.yml",
+    ".github/workflows/desktop.yml",
+    ".github/workflows/pages.yml",
     "Scene/Fan.cpp",
     "Scene/Fan.h",
     "Scene/Model.h",
@@ -194,7 +197,16 @@ except (FileNotFoundError, subprocess.CalledProcessError):
     tracked = []
 
 forbidden_suffixes = {".apk", ".aab", ".exe", ".pdf", ".wasm"}
-forbidden_parts = {"build", "build_ci", "build_web", ".gradle", ".cxx"}
+forbidden_parts = {
+    "build",
+    "build_ci",
+    "build_web",
+    "web",
+    "external",
+    ".gradle",
+    ".idea",
+    ".cxx",
+}
 leaked = [
     str(path)
     for path in tracked

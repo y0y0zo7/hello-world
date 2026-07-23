@@ -27,19 +27,27 @@ jobs:
             os: windows-latest
             run_tests: false
           - project: AndroidProgrammingQuiz-CrossPlatformCI/AndroidProgrammingQuiz-CrossPlatformCI
-            name: Assignment-1
+            name: Programming-Quiz-1
             os: ubuntu-latest
             run_tests: false
           - project: AndroidProgrammingQuiz-CrossPlatformCI/AndroidProgrammingQuiz-CrossPlatformCI
-            name: Assignment-1
+            name: Programming-Quiz-1
             os: windows-latest
             run_tests: false
-          - project: android-programming-2
-            name: Assignment-2-3D-Fan
+          - project: Assignment-2-3DFan
+            name: Programming-Quiz-2
             os: ubuntu-latest
             run_tests: true
-          - project: android-programming-2
-            name: Assignment-2-3D-Fan
+          - project: Assignment-2-3DFan
+            name: Programming-Quiz-2
+            os: windows-latest
+            run_tests: true
+          - project: android-programming-quiz3
+            name: Programming-Quiz-3
+            os: ubuntu-latest
+            run_tests: true
+          - project: android-programming-quiz3
+            name: Programming-Quiz-3
             os: windows-latest
             run_tests: true
 
@@ -47,8 +55,12 @@ jobs:
       - uses: actions/checkout@v6
 
       - name: Verify Assignment 2 source and rubric invariants
-        if: matrix.name == 'Assignment-2-3D-Fan' && runner.os == 'Linux'
-        run: python android-programming-2/scripts/verify_submission.py
+        if: matrix.name == 'Programming-Quiz-2' && runner.os == 'Linux'
+        run: python Assignment-2-3DFan/scripts/verify_submission.py
+
+      - name: Verify Programming Quiz 3 source and rubric invariants
+        if: matrix.name == 'Programming-Quiz-3' && runner.os == 'Linux'
+        run: python android-programming-quiz3/scripts/verify_submission.py
 
       - name: Install OpenGL and window-system headers
         if: runner.os == 'Linux'
@@ -88,7 +100,7 @@ jobs:
         working-directory: ${{ matrix.project }}
         run: cmake --build build_ci --config Release --parallel
 
-      - name: Run Assignment 2 interaction tests
+      - name: Run automated interaction tests
         if: matrix.run_tests
         working-directory: ${{ matrix.project }}
         run: ctest --test-dir build_ci -C Release --output-on-failure

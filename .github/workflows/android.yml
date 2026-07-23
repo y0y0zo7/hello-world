@@ -22,18 +22,25 @@ jobs:
             name: 2-OpenGLES3-Primitives
             tasks: assembleDebug
           - project: AndroidProgrammingQuiz-CrossPlatformCI/AndroidProgrammingQuiz-CrossPlatformCI
-            name: Assignment-1
+            name: Programming-Quiz-1
             tasks: assembleDebug
-          - project: android-programming-2
-            name: Assignment-2-3D-Fan
+          - project: Assignment-2-3DFan
+            name: Programming-Quiz-2
+            tasks: assembleDebug lintDebug
+          - project: android-programming-quiz3
+            name: Programming-Quiz-3
             tasks: assembleDebug lintDebug
 
     steps:
       - uses: actions/checkout@v6
 
       - name: Verify Assignment 2 source and rubric invariants
-        if: matrix.name == 'Assignment-2-3D-Fan'
-        run: python android-programming-2/scripts/verify_submission.py
+        if: matrix.name == 'Programming-Quiz-2'
+        run: python Assignment-2-3DFan/scripts/verify_submission.py
+
+      - name: Verify Programming Quiz 3 source and rubric invariants
+        if: matrix.name == 'Programming-Quiz-3'
+        run: python android-programming-quiz3/scripts/verify_submission.py
 
       - name: Set up Java 17
         uses: actions/setup-java@v5

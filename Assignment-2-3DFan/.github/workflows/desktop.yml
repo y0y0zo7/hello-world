@@ -1,0 +1,65 @@
+name: Desktop
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: "Desktop - ${{ matrix.os }}"
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Verify source and rubric invariants
+        if: runner.os == 'Linux'
+        run: python scripts/verify_submission.py
+
+      - name: Install OpenGL and window-system headers
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends \
+            libx11-dev libxrandr-dev libxinerama-dev \
+            libxcursor-dev libxi-dev libgl1-mesa-dev \
+            libwayland-dev wayland-protocols libxkbcommon-dev
+
+      - name: Cache pinned CMake dependencies
+        uses: actions/cache@v5
+        with:
+          path: build_ci/_deps
+          key: cmake-deps-${{ runner.os }}-${{ hashFiles('cmake/ImportDependencies.cmake') }}
+          restore-keys: cmake-deps-${{ runner.os }}-
+
+      - name: Set up MSVC environment
+        if: runner.os == 'Windows'
+        uses: ilammy/msvc-dev-cmd@v1
+
+      - name: Install Ninja
+        if: runner.os == 'Windows'
+        uses: seanmiddleditch/gha-setup-ninja@v4
+
+      - name: Configure with CMake (Linux)
+        if: runner.os == 'Linux'
+        run: cmake -S . -B build_ci -DCMAKE_BUILD_TYPE=Release
+
+      - name: Configure with CMake and Ninja (Windows)
+        if: runner.os == 'Windows'
+        run: cmake -S . -B build_ci -G Ninja -DCMAKE_BUILD_TYPE=Release
+
+      - name: Build
+        run: cmake --build build_ci --config Release --parallel
+
+      - name: Run interaction tests
+        run: ctest --test-dir build_ci -C Release --output-on-failure

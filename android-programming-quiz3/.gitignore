@@ -1,0 +1,28 @@
+# Native and WebAssembly build output
+build/
+build_*/
+build-*/
+web/
+
+# Android Studio and Gradle output
+android/.gradle/
+android/.idea/
+android/local.properties
+android/app/build/
+android/app/.cxx/
+android/.cxx/
+gradle-project-cache/
+
+# Tooling and operating-system files
+.vs/
+*.user
+*.suo
+*.iml
+.DS_Store
+Thumbs.db
+
+# Assignment inputs are kept locally, not submitted as source
+sample-demo/
+*.pdf
+*.exe
+*.log

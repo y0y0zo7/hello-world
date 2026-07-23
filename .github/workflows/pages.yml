@@ -21,8 +21,10 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
-      - name: Verify Assignment 2 source and rubric invariants
-        run: python android-programming-2/scripts/verify_submission.py
+      - name: Verify assignment source and rubric invariants
+        run: |
+          python Assignment-2-3DFan/scripts/verify_submission.py
+          python android-programming-quiz3/scripts/verify_submission.py
 
       - name: Set up Emscripten 3.1.64
         uses: mymindstorm/setup-emsdk@v14
@@ -51,19 +53,30 @@ jobs:
           cp -r web/. ../../site/AndroidProgrammingQuiz-CrossPlatformCI/
 
       - name: Build Assignment 2 - 3D Fan
-        working-directory: android-programming-2
+        working-directory: Assignment-2-3DFan
         run: |
           bash build_web.sh
-          mkdir -p ../site/android-programming-2
-          cp -r web/. ../site/android-programming-2/
+          mkdir -p ../site/Assignment-2-3DFan
+          cp -r web/. ../site/Assignment-2-3DFan/
+
+      - name: Build Programming Quiz 3
+        working-directory: android-programming-quiz3
+        run: |
+          bash build_web.sh
+          mkdir -p ../site/android-programming-quiz3
+          cp -r web/. ../site/android-programming-quiz3/
 
       - name: Verify deployable site
         run: |
           test -s site/index.html
-          test -s site/android-programming-2/index.html
-          test -s site/android-programming-2/index.js
-          test -s site/android-programming-2/index.wasm
-          test -s site/android-programming-2/index.data
+          test -s site/Assignment-2-3DFan/index.html
+          test -s site/Assignment-2-3DFan/index.js
+          test -s site/Assignment-2-3DFan/index.wasm
+          test -s site/Assignment-2-3DFan/index.data
+          test -s site/android-programming-quiz3/index.html
+          test -s site/android-programming-quiz3/index.js
+          test -s site/android-programming-quiz3/index.wasm
+          test -s site/android-programming-quiz3/index.data
 
       - name: Configure GitHub Pages
         uses: actions/configure-pages@v5

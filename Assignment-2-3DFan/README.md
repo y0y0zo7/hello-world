@@ -2,7 +2,7 @@
 
 A cross-platform OpenGL ES 3.0 fan built from one indexed cube and one shared hierarchical C++ scene. The same `Scene/` implementation runs on Android, Windows, Linux, and WebGL 2.
 
-[Launch the WebGL demo](https://y0y0zo7.github.io/hello-world/android-programming-2/)
+[Launch the WebGL demo](https://y0y0zo7.github.io/hello-world/Assignment-2-3DFan/)
 
 ## Result
 
@@ -77,6 +77,54 @@ python3 -m http.server 8080 --directory web
 ```
 
 On Windows, use `build_web.bat`. Open `http://localhost:8080`; browsers cannot reliably load WebAssembly from a `file://` URL. The `web/` directory is generated and excluded from Git—GitHub Actions rebuilds it for Pages.
+
+## Fresh submission check on Windows
+
+Start from a newly extracted copy of `Assignment-2-3DFan` so no old CMake or Android path is cached.
+
+### 1. Desktop
+
+Install Visual Studio 2022 with the **Desktop development with C++** workload, CMake, and Git. From the project root, run:
+
+```bat
+script_build_and_run.bat
+```
+
+The script performs a fresh Release build, runs `FanInteractionTests`, and launches `build\Release\Fan3D.exe`. Confirm that the coloured fan spins, click toggles it on/off, dragging boosts its speed, and a long press cycles through 3/4/5 blades.
+
+### 2. Android
+
+In Android Studio, open the `android` directory, not the parent project directory. In **SDK Manager > SDK Tools**, install NDK (Side by side) `27.0.12077973` and CMake `3.22.1`; install Android SDK 36 under **SDK Platforms**. Use Android Studio's bundled Java 17 runtime, then:
+
+1. Allow Gradle sync to finish.
+2. Select **Build > Clean Project**.
+3. Select **Build > Rebuild Project**.
+4. Run the `app` configuration on an emulator or physical device.
+
+The command-line equivalent, when Gradle is available on `PATH`, is:
+
+```bat
+cd android
+gradle clean assembleDebug lintDebug --no-daemon
+```
+
+The APK appears at `android\app\build\outputs\apk\debug\app-debug.apk`. Confirm the same tap, drag, and long-press controls on the device, and check Logcat for `Fan ON`, `Fan OFF`, swipe velocity, and blade-count messages.
+
+### 3. WebGL
+
+Install and activate Emscripten `3.1.64`, then run from the project root:
+
+```bat
+emsdk install 3.1.64
+emsdk activate 3.1.64
+emsdk_env.bat
+build_web.bat
+python -m http.server 8080 --directory web
+```
+
+Open `http://localhost:8080`. Confirm the coloured fan renders, the browser console has no errors, and click, drag, long-press, fullscreen, and resizing work. Stop the server with `Ctrl+C`.
+
+Before submission, run `python scripts/verify_submission.py`. Do not add the generated `build/`, `build_web/`, `web/`, `external/`, `android/.gradle/`, `android/.idea/`, `android/build/`, `android/app/build/`, or `android/app/.cxx/` directories to the repository or ZIP.
 
 ## Continuous integration and deployment
 
